@@ -97,3 +97,23 @@ Für die Ansicht in `abgleich_template.html` den Platzhalter `__DATA__` durch de
 - `data.js` und damit die gebaute HTML enthalten die NU- und Lieferantenliste mit Kontaktdaten. Nur intern weitergeben.
 - GAEB 90 ist in CP850 kodiert. `gaeb.js` und `gaeb_gewerke.py` müssen dieselben Dateien erzeugen. Bei Änderungen an der Logik beide anpassen.
 - Firmen mit „nicht mehr anfragen“ in der Lieferantenliste haben eine vorbelegte Sperre bis 31.12.2025 (in `app.html`). Die ist inzwischen abgelaufen.
+
+## Deployment (Sliplane / Docker)
+
+Das `Dockerfile` baut `Gewerke-Anfragen.html` aus `poc_ui/src` (via `build.py`) und liefert sie mit nginx auf **Port 8080** aus, geschützt per Basic Auth.
+
+Umgebungsvariablen:
+
+| Variable | Pflicht | Bedeutung |
+|---|---|---|
+| `BASIC_AUTH_PASSWORD` | ja | Passwort. Ohne diese Variable startet der Container nicht (die App enthält Kontaktdaten). |
+| `BASIC_AUTH_USER` | nein | Benutzername, Standard `eurovia` |
+
+Health-Check ohne Login: `/healthz`.
+
+Lokal testen:
+
+```bash
+docker build -t gewerke-anfragen .
+docker run -p 8080:8080 -e BASIC_AUTH_PASSWORD=geheim gewerke-anfragen
+```
