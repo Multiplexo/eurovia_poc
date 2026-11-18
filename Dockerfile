@@ -11,4 +11,4 @@ COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/40-basic-auth.sh /docker-entrypoint.d/40-basic-auth.sh
 RUN chmod +x /docker-entrypoint.d/40-basic-auth.sh
 COPY --from=build /app/Gewerke-Anfragen.html /usr/share/nginx/html/index.html
-EXPOSE 8080
+EXPOSE 80

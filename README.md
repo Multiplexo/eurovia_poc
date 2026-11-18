@@ -100,7 +100,7 @@ Für die Ansicht in `abgleich_template.html` den Platzhalter `__DATA__` durch de
 
 ## Deployment (Sliplane / Docker)
 
-Das `Dockerfile` baut `Gewerke-Anfragen.html` aus `poc_ui/src` (via `build.py`) und liefert sie mit nginx auf **Port 8080** aus, geschützt per Basic Auth.
+Das `Dockerfile` baut `Gewerke-Anfragen.html` aus `poc_ui/src` (via `build.py`) und liefert sie mit nginx auf **Port 80** aus, geschützt per Basic Auth.
 
 Umgebungsvariablen:
 
@@ -115,5 +115,5 @@ Lokal testen:
 
 ```bash
 docker build -t gewerke-anfragen .
-docker run -p 8080:8080 -e BASIC_AUTH_PASSWORD=geheim gewerke-anfragen
+docker run -p 8080:80 -e BASIC_AUTH_PASSWORD=geheim gewerke-anfragen
 ```
