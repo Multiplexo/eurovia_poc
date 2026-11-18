@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gewerke-Anfragen</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--mut:#667085;--line:#e3e6eb;--acc:#1f6feb;--acc2:#e8f0fe;--ok:#1a7f37;--warn:#b26b00;--bad:#c62828;--chip:#eef1f5;--warnbg:#fff3df;--badbg:#fde7e7;--okbg:#e6f4ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1c2027;--ink:#e6e8eb;--mut:#9aa3af;--line:#2c323b;--acc:#4c8dff;--acc2:#1f2d45;--ok:#4caf50;--warn:#e0a030;--bad:#ef5350;--chip:#262b33;--warnbg:#3a2c12;--badbg:#3a1c1c;--okbg:#173322;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171c;--card:#1c2027;--ink:#e6e8eb;--mut:#9aa3af;--line:#2c323b;--acc:#4c8dff;--acc2:#1f2d45;--ok:#4caf50;--warn:#e0a030;--bad:#ef5350;--chip:#262b33;--warnbg:#3a2c12;--badbg:#3a1c1c;--okbg:#173322;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{display:flex;align-items:center;gap:24px;padding:12px 24px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-wrap:wrap}
+header h1{font-size:16px;margin:0}
+nav button{background:none;border:0;padding:8px 12px;font:inherit;color:var(--mut);cursor:pointer;border-radius:6px}
+nav button.on{background:var(--acc2);color:var(--acc);font-weight:600}
+main{max-width:1200px;margin:0 auto;padding:20px 24px 80px}
+.steps{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.steps div{padding:6px 12px;border-radius:999px;background:var(--chip);color:var(--mut);font-size:13px;cursor:pointer}
+.steps div.on{background:var(--acc);color:#fff}
+.steps div.dis{opacity:.45;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.mut{color:var(--mut)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+button.b{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer}
+button.s{background:var(--chip);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+textarea{width:100%;min-height:70px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:40px;text-align:center;color:var(--mut)}
+.drop.over{border-color:var(--acc);background:var(--acc2)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:12px}
+.g-head{display:flex;align-items:center;gap:10px;cursor:pointer}
+.g-head .t{font-weight:600}
+.badge{display:inline-block;padding:1px 7px;border-radius:999px;background:var(--chip);font-size:12px;color:var(--mut)}
+.badge.warn{background:var(--warnbg);color:var(--warn)}
+.badge.bad{background:var(--badbg);color:var(--bad)}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:999px;padding:1px 8px;font-size:12px;margin:1px 2px;white-space:nowrap}
+.chip b{cursor:pointer;color:var(--mut);font-weight:400}
+.chip.off{opacity:.45;text-decoration:line-through}
+.chip[data-tgl]{cursor:pointer}
+.chip.eigen{background:transparent;border:1px dashed var(--mut)}
+.why{font-size:11px;color:var(--mut);margin-top:2px}
+.lvh td{background:var(--chip);font-weight:600}
+.oz{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mut);white-space:nowrap}
+.kt{max-width:520px}
+.lt{font-size:12px;color:var(--mut)}
+.collapsed .g-body{display:none}
+.sperr{opacity:.55}
+.grid2{display:grid;grid-template-columns:1fr 360px;gap:14px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.hint{font-size:12px;color:var(--warn)}
+.list-scroll{max-height:520px;overflow:auto}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 24px;display:flex;gap:10px;align-items:center;justify-content:flex-end}
+a{color:var(--acc)}
+.sel{background:var(--acc2)}
+.help{max-width:780px}
+.help h2{font-size:16px;margin:0 0 8px}
+.help h3{font-size:14px;margin:16px 0 4px}
+.help p,.help li{line-height:1.6}
+.help ol,.help ul{padding-left:22px;margin:6px 0}
+.help li{margin:3px 0}
+.help kbd{font:12px ui-monospace,Menlo,monospace;background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.help .toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.help .toc a{font-size:13px;text-decoration:none;background:var(--chip);border-radius:999px;padding:3px 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Gewerke-Anfragen <span class="mut" style="font-weight:400">PoC</span></h1>
+  <nav><button id="tabA" class="on">Anfrage</button><button id="tabN">Subunternehmer</button><button id="tabR">Regeln</button><button id="tabH">Anleitung</button></nav>
+  <span class="sp"></span>
+  <span class="mut" id="lvInfo"></span>
+</header>
+<main>
+  <section id="viewA">
+    <div class="steps" id="steps"></div>
+    <div id="step"></div>
+  </section>
+  <section id="viewN" hidden></section>
+  <section id="viewR" hidden></section>
+  <section id="viewH" class="help" hidden></section>
+</main>
+<div class="foot" id="foot"></div>
+
+<script>/*DATA*/</script>
+<script>/*GAEB*/</script>
+<script>/*X83*/</script>
+<script>/*PDFJS*/</script>
+<script id="pdfworker" type="text/plain">/*PDFWORKER*/</script>
+<script>/*PDFSITE*/</script>
+<script>/*ENGINE*/</script>
+<script>
+'use strict';
+// ------------------------------------------------------------ Speicher
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('gwa.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('gwa.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtKm = d => d == null ? '–' : Math.round(d) + ' km';
+
+// Gewerke-Stammdaten (Kürzel -> Name, Arten); Änderungen lokal gespeichert
+const GW = JSON.parse(JSON.stringify(DATA.gewerke));
+Object.assign(GW, store.get('gewerke', {}));
+const saveGW = () => {
+  const diff = {};
+  for (const k in GW) if (JSON.stringify(GW[k]) !== JSON.stringify(DATA.gewerke[k])) diff[k] = GW[k];
+  store.set('gewerke', diff);
+};
+const EIGEN = 'EIGEN'; // Pseudo-Gewerk: wird selbst ausgeführt, keine Anfrage
+const gwName = c => c === EIGEN ? 'Eigenleistung' : (GW[c]?.name || c);
+const isGw = c => c && c !== EIGEN;
+
+// Subunternehmer-Notizen: key = "Firma (Ort)"
+const firmKey = f => f.firma + (f.ort ? ' (' + f.ort + ')' : '');
+const NU = store.get('nu', null) || (() => {
+  const seed = {};
+  for (const f of DATA.firms) if (f.bem.some(b => /nicht mehr anfragen/i.test(b)))
+    seed[firmKey(f)] = { comment: '', sperre: true, bis: '2025-12-31', grund: f.bem.find(b => /nicht mehr anfragen/i.test(b)) };
+  return seed;
+})();
+const saveNU = () => store.set('nu', NU);
+const today = new Date().toISOString().slice(0, 10);
+const sperrStatus = f => {
+  const n = NU[firmKey(f)];
+  if (!n || !n.sperre) return null;
+  if (n.bis && n.bis < today) return { aktiv: false, text: 'Sperre abgelaufen (' + n.bis + ')' };
+  return { aktiv: true, text: 'Gesperrt' + (n.bis ? ' bis ' + n.bis : '') + (n.grund ? ': ' + n.grund : '') };
+};
+
+const norm = c => DATA.alias[c] || c;
+// Vorschlags-Regeln: Stichwörter, Katalognummern, Beispiele (mitgelernt aus bestätigten Anfragen)
+const KW_SEED = /*KW*/;
+const CORPUS = DATA.corpus.map(([text, codes, kat, src, kurz]) => ({ text, codes: codes.map(norm), kat, src, kurz }));
+let KW = store.get('kw', null) || KW_SEED;
+let KAT = store.get('kat', null) || ENGINE.learnKatRules(CORPUS);
+let LEARNED = store.get('beispiele', []);
+let suggest;
+function rebuild() { suggest = ENGINE.make(CORPUS.concat(LEARNED), KW, KAT); }
+rebuild();
+
+// ------------------------------------------------------------ Zustand
+const S = {
+  step: 0, file: null, lv: null,
+  assign: new Map(),     // oz -> Set(kürzel)
+  reason: new Map(),     // oz -> {reason, sure} des Vorschlags
+  view: 'gw',            // 'gw' = nach Gewerk, 'lv' = LV-Reihenfolge
+  pick: new Set(),       // "kürzel|oz" = Position wird in dieser Anfrage mitgeschickt
+  collapsed: new Set(),
+  filter: '',
+  site: null,            // {label, lat, lng}
+  siteText: '',
+  firms: {},             // kürzel -> Set(firm id)
+  openGw: null,
+};
+
+const STEPS = ['LV einlesen', 'Leistungen & Gewerke', 'Baustelle', 'Anbieter', 'Export'];
+function renderSteps() {
+  $('#steps').innerHTML = STEPS.map((t, i) =>
+    `<div class="${i === S.step ? 'on' : ''} ${!S.lv && i > 0 ? 'dis' : ''}" data-i="${i}">${i + 1}. ${t}</div>`).join('');
+  $('#steps').querySelectorAll('div').forEach(d => d.onclick = () => { if (S.lv || +d.dataset.i === 0) go(+d.dataset.i); });
+}
+function go(i) { S.step = i; render(); window.scrollTo(0, 0); }
+function render() {
+  renderSteps();
+  [renderLoad, renderGewerke, renderSite, renderFirms, renderExport][S.step]();
+  $('#lvInfo').textContent = S.lv ? `${S.file} · ${S.lv.info.auftraggeber} · ${S.lv.items.length} Positionen` : '';
+}
+function foot(html) { $('#foot').innerHTML = html; $('#foot').hidden = !html; }
+
+// ------------------------------------------------------------ 1. Einlesen
+function renderLoad() {
+  $('#step').innerHTML = `
+  <div class="card"><h2>Ausschreibung einlesen</h2>
+    <p class="mut">Am besten den ganzen Ausschreibungsordner hierher ziehen. Der PoC nimmt sich daraus das Gesamt-LV (.D83 oder .X83) und liest die Baustelle aus der „Aufforderung zur Angebotsabgabe“ (PDF). Eine einzelne LV-Datei geht auch. Alles bleibt auf diesem Rechner.</p>
+    <div class="drop" id="drop">Ordner oder LV-Datei hier ablegen</div>
+    <div class="row" style="margin-top:8px">
+      <label class="s" style="cursor:pointer">Ordner wählen<input type="file" id="dirIn" webkitdirectory multiple hidden></label>
+      <label class="s" style="cursor:pointer">Einzelne LV-Datei wählen<input type="file" id="fileIn" accept=".d83,.D83,.p83,.P83,.x83,.X83" hidden></label>
+    </div>
+    <div id="loadMsg" class="hint" style="margin-top:8px"></div>
+  </div>
+  <p class="mut">Zum ersten Mal hier? Die <a href="#" id="toHelp">Anleitung</a> erklärt alle Schritte.</p>`;
+  $('#toHelp').onclick = e => { e.preventDefault(); showTab('H'); };
+  const drop = $('#drop');
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = async e => { e.preventDefault(); drop.classList.remove('over'); loadFiles(await droppedFiles(e.dataTransfer)); };
+  $('#dirIn').onchange = e => loadFiles([...e.target.files]);
+  $('#fileIn').onchange = e => loadFiles([...e.target.files]);
+  foot(S.lv ? `<button class="b" onclick="go(1)">Weiter</button>` : '');
+}
+// abgelegte Dateien und Ordner (rekursiv) einsammeln
+async function droppedFiles(dt) {
+  const entries = [...dt.items].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (!entries.length) return [...dt.files];
+  const out = [];
+  const walk = async en => {
+    if (en.isFile) out.push(await new Promise((ok, no) => en.file(ok, no)));
+    else if (en.isDirectory) {
+      const r = en.createReader();
+      for (let batch; (batch = await new Promise((ok, no) => r.readEntries(ok, no))).length;) for (const c of batch) await walk(c);
+    }
+  };
+  for (const en of entries) await walk(en);
+  return out;
+}
+// Gesamt-LV im Ordner finden: die Datei, auf die sich die Gewerke-Dateien (KÜRZEL_<name>) beziehen
+function pickMain(files) {
+  const lvs = files.filter(f => /\.(d83|x83|p83)$/i.test(f.name));
+  if (lvs.length < 2) return lvs[0];
+  const ref = lvs.find(f => lvs.some(g => g !== f && g.name.endsWith('_' + f.name)));
+  if (ref) return ref;
+  const plain = lvs.filter(f => !/^[A-ZÄÖÜ]+_/.test(f.name));
+  const pool = plain.length ? plain : lvs;
+  return pool.sort((x, y) => (/\.d83$/i.test(y.name) - /\.d83$/i.test(x.name)) || y.size - x.size)[0];
+}
+async function loadFiles(files) {
+  const msg = t => $('#loadMsg').textContent = t;
+  const main = pickMain(files);
+  if (!main) return msg('Keine LV-Datei (.D83 oder .X83) gefunden.');
+  try {
+    const bytes = new Uint8Array(await main.arrayBuffer());
+    // GAEB-XML beginnt mit '<' (ggf. nach BOM/Leerzeichen), GAEB 90 mit Satzart-Ziffern
+    const head = new TextDecoder().decode(bytes.slice(0, 200)).replace(/^﻿?\s*/, '');
+    const lv = head.startsWith('<') ? X83.parse(new TextDecoder().decode(bytes)) : GAEB.parse(GAEB.decode(bytes));
+    if (!lv.items.length) throw new Error('keine Positionen gefunden');
+    S.lv = lv; S.file = main.name;
+    S.firms = {};
+    clearAssign();
+    S.siteText = guessSite(lv, main.name); S.siteSrc = 'dem LV';
+    S.site = null;
+  } catch (e) { return msg(`${main.name} konnte nicht gelesen werden: ${e.message}`); }
+  const auf = files.filter(f => /aufforderung/i.test(f.name) && /\.pdf$/i.test(f.name)).sort((x, y) => x.size - y.size)[0];
+  if (auf) {
+    msg(`${main.name} gelesen, lese Baustelle aus ${auf.name} …`);
+    try {
+      const s = PDFSITE.site(await PDFSITE.text(auf), agOrt(S.lv.info));
+      if (s) { S.siteText = s; S.siteSrc = auf.name; }
+    } catch (e) { console.warn('Aufforderung nicht lesbar', e); }
+  }
+  go(1);
+}
+
+// Startzustand: alles nicht zugeordnet, bis „Intelligente Zuordnung“ gedrückt wird
+function clearAssign() {
+  S.assign.clear(); S.reason.clear(); S.pick.clear();
+  for (const it of S.lv.items) S.assign.set(it.oz, new Set());
+}
+// onlyEmpty: nur Positionen ohne Zuordnung füllen, manuelle Zuordnungen bleiben
+function applySuggestions(onlyEmpty) {
+  if (!onlyEmpty) { S.assign.clear(); S.reason.clear(); S.pick.clear(); }
+  for (const it of S.lv.items) {
+    if (onlyEmpty && S.assign.get(it.oz)?.size) continue;
+    const r = suggest(it);
+    const codes = r.codes.map(norm).filter(c => GW[c]);
+    S.assign.set(it.oz, new Set(codes.length ? codes : [EIGEN]));
+    S.reason.set(it.oz, r);
+    codes.forEach(c => S.pick.add(c + '|' + it.oz));
+  }
+}
+
+// ------------------------------------------------------------ 2. Leistungen & Gewerke
+function groups() {
+  const g = new Map();
+  for (const it of S.lv.items) {
+    const cs = S.assign.get(it.oz);
+    if (!cs.size) { if (!g.has('')) g.set('', []); g.get('').push(it); }
+    for (const c of cs) { if (!g.has(c)) g.set(c, []); g.get(c).push(it); }
+  }
+  const keys = [...g.keys()].filter(isGw).sort((a, b) => gwName(a).localeCompare(gwName(b)));
+  if (g.has(EIGEN)) keys.push(EIGEN);
+  if (g.has('')) keys.push('');
+  return keys.map(k => [k, g.get(k)]);
+}
+const activeGw = () => groups().filter(([c, its]) => isGw(c) && its.some(it => S.pick.has(c + '|' + it.oz))).map(([c]) => c);
+
+
+// Begruendung des Vorschlags in Klartext
+const PKG_LV = {K181_26_0272:'03-26-0005',K181_26_0312:'1 (Münster)',K182_0000001098:'22014 (Gütersloh)',K182_0000001109:'24009 (moBiel)',K182_26_0105:'06-25-0079',K182_26_0168:'2026-S-11 (Bielefeld)'};
+function whyText(r) {
+  if (!r.reason) return '';
+  const names = r.codes.map(norm).filter(c => GW[c]).map(gwName).join(' + ') || 'Eigenleistung';
+  if (r.ex) {
+    const lv = PKG_LV[r.ex.src] || r.ex.src.replace(/\.d83$/i, '');
+    return `Vorschlag ${names}, weil die ähnliche Position „${r.ex.kurz}“ im LV ${lv} ` + (r.codes.length ? `an ${names} ging` : 'nicht angefragt wurde') + (r.sure === false ? ' (Ähnlichkeit gering, bitte prüfen)' : '');
+  }
+  return `Vorschlag ${names}, weil ${r.why || r.reason}`;
+}
+const ozLabel = it => it.oz.trim().replace(/\s+/g, '.');
+function gwCell(it, opts, toggle) {
+  const cs = [...S.assign.get(it.oz)], r = S.reason.get(it.oz) || {};
+  const chip = x => x === EIGEN
+    ? `<span class="chip eigen" title="wird selbst ausgeführt, keine Anfrage">Eigenleistung<b data-rm="${x}|${esc(it.oz)}" title="Eigenleistung entfernen">×</b></span>`
+    : toggle
+    ? `<span class="chip ${S.pick.has(x + '|' + it.oz) ? '' : 'off'}" data-tgl="${x}|${esc(it.oz)}" title="Klick: in dieser Anfrage mitschicken ja/nein">${esc(gwName(x))}<b data-rm="${x}|${esc(it.oz)}" title="aus Gewerk entfernen">×</b></span>`
+    : `<span class="chip" title="Kürzel ${x}">${esc(gwName(x))}<b data-rm="${x}|${esc(it.oz)}" title="aus Gewerk entfernen">×</b></span>`;
+  return `${cs.map(chip).join('')}${!cs.length ? '<span class="badge warn">nicht zugeordnet</span> ' : ''}
+    ${r.sure === false ? '<span class="badge warn">unsicher</span>' : ''}
+    <select data-add="${esc(it.oz)}"><option value="">+ Gewerk / Eigenleistung</option><option value="${EIGEN}">Eigenleistung (selbst ausführen)</option>${opts}</select>
+    ${whyText(r) ? `<div class="why">${esc(whyText(r))}</div>` : ''}`;
+}
+function lvRows(group, f, opts, out) {
+  for (const c of group.children) {
+    if (c.records) {
+      if (f && !(c.kurztext + ' ' + c.oz).toLowerCase().includes(f)) continue;
+      out.push(`<tr><td class="oz">${esc(ozLabel(c))}</td>
+        <td class="kt">${esc(c.kurztext)}<div class="lt">${esc(c.langtext.slice(0, 140))}${c.langtext.length > 140 ? ' …' : ''}</div></td>
+        <td style="white-space:nowrap">${c.mengeNum.toLocaleString('de-DE')} ${esc(c.einheit)}</td>
+        <td>${gwCell(c, opts, true)}</td></tr>`);
+    } else {
+      const sub = [];
+      lvRows(c, f, opts, sub);
+      if (sub.length) out.push(`<tr class="lvh"><td colspan="4">${esc(c.title || 'Abschnitt')}</td></tr>`, ...sub);
+    }
+  }
+  return out;
+}
+function renderGewerke() {
+  const f = S.filter.toLowerCase();
+  const opts = Object.keys(GW).sort((a, b) => gwName(a).localeCompare(gwName(b)))
+    .map(c => `<option value="${c}">${esc(gwName(c))} (${c})</option>`).join('');
+  let html = `<div class="card"><div class="row">
+      <button class="b" id="smart" title="schlägt für jede noch nicht zugeordnete Position Gewerke vor">Intelligente Zuordnung</button>
+      <input type="search" id="flt" placeholder="Positionen suchen …" value="${esc(S.filter)}" style="min-width:280px">
+      <button class="s ${S.view === 'gw' ? 'sel' : ''}" id="vGw">Nach Gewerk</button><button class="s ${S.view === 'lv' ? 'sel' : ''}" id="vLv">LV-Reihenfolge</button>
+      <span class="sp"></span>
+      <button class="s" id="allOn">Alle auswählen</button><button class="s" id="allOff">Keine</button>
+      <button class="s" id="expAll">Alle aufklappen</button><button class="s" id="colAll">Alle zuklappen</button>
+    </div>
+    <p class="mut" style="margin:8px 0 0">„Intelligente Zuordnung“ schlägt für alle noch nicht zugeordneten Positionen Gewerke vor, auf Basis der bisherigen Anfragen des Kunden. Danach lässt sich alles von Hand korrigieren. <span class="badge warn">unsicher</span> heißt: kaum ähnliche Positionen gefunden. Eigenleistung heißt: wird selbst ausgeführt und nicht angefragt. Über „+ Gewerk / Eigenleistung“ lässt sich das bei jeder Position ändern. ${S.view === 'gw' ? 'Häkchen = Position wird in dieser Anfrage mitgeschickt.' : 'Klick auf ein Gewerk = in dieser Anfrage mitschicken ja/nein (durchgestrichen = nein).'}</p></div>`;
+  if (S.view === 'lv') {
+    html += `<div class="card"><table><tr><th>OZ</th><th>Leistung</th><th>Menge</th><th>Gewerke</th></tr>${lvRows(S.lv.root, f, opts, []).join('')}</table></div>`;
+  }
+  for (const [c, its] of S.view === 'gw' ? groups() : []) {
+    const vis = its.filter(it => !f || (it.kurztext + ' ' + it.oz).toLowerCase().includes(f));
+    if (!vis.length) continue;
+    const n = its.filter(it => S.pick.has(c + '|' + it.oz)).length;
+    const col = S.collapsed.has(c) && !f;
+    html += `<div class="card ${col ? 'collapsed' : ''}" data-g="${c}">
+      <div class="g-head" data-tog="${c}">
+        ${isGw(c) ? `<input type="checkbox" data-gall="${c}" ${n === its.length ? 'checked' : ''} ${n && n < its.length ? 'data-ind="1"' : ''}>` : ''}
+        <span class="t">${c ? esc(gwName(c)) : 'Nicht zugeordnet'}</span>
+        ${isGw(c) ? `<span class="badge">${c}</span>` : ''}
+        <span class="mut">${isGw(c) ? n + ' von ' + its.length + ' Positionen ausgewählt' : c ? its.length + ' Positionen, werden selbst ausgeführt und nicht angefragt' : its.length + ' Positionen ohne Gewerk und ohne Eigenleistung, bitte zuordnen'}</span>
+        <span class="sp"></span><span class="mut">${col ? '▸' : '▾'}</span>
+      </div>
+      <div class="g-body"><table><tr>${isGw(c) ? '<th></th>' : ''}<th>OZ</th><th>Leistung</th><th>Menge</th><th>Gewerke</th></tr>`;
+    for (const it of vis) {
+      html += `<tr>${isGw(c) ? `<td><input type="checkbox" data-pick="${c}|${esc(it.oz)}" ${S.pick.has(c + '|' + it.oz) ? 'checked' : ''}></td>` : ''}
+        <td class="oz">${esc(it.oz.trim().replace(/\s+/g, '.'))}</td>
+        <td class="kt">${esc(it.kurztext)}<div class="lt">${esc(it.langtext.slice(0, 140))}${it.langtext.length > 140 ? ' …' : ''}</div></td>
+        <td style="white-space:nowrap">${it.mengeNum.toLocaleString('de-DE')} ${esc(it.einheit)}</td>
+        <td>${gwCell(it, opts, false)}</td></tr>`;
+    }
+    html += `</table></div></div>`;
+  }
+  $('#step').innerHTML = html;
+  document.querySelectorAll('[data-ind]').forEach(el => el.indeterminate = true);
+  $('#flt').oninput = e => { S.filter = e.target.value; const p = e.target.selectionStart; renderGewerke(); const x = $('#flt'); x.focus(); x.setSelectionRange(p, p); };
+  $('#allOn').onclick = () => { for (const [c, its] of groups()) if (isGw(c)) its.forEach(it => S.pick.add(c + '|' + it.oz)); renderGewerke(); };
+  $('#allOff').onclick = () => { S.pick.clear(); renderGewerke(); };
+  $('#smart').onclick = () => { applySuggestions(true); renderGewerke(); };
+  $('#vGw').onclick = () => { S.view = 'gw'; renderGewerke(); };
+  $('#vLv').onclick = () => { S.view = 'lv'; renderGewerke(); };
+  document.querySelectorAll('[data-tgl]').forEach(el => el.onclick = e => {
+    if (e.target.tagName === 'B') return;
+    const k = el.dataset.tgl; S.pick.has(k) ? S.pick.delete(k) : S.pick.add(k); renderGewerke();
+  });
+  $('#expAll').onclick = () => { S.collapsed.clear(); renderGewerke(); };
+  $('#colAll').onclick = () => { groups().forEach(([c]) => S.collapsed.add(c)); renderGewerke(); };
+  document.querySelectorAll('[data-tog]').forEach(el => el.onclick = e => {
+    if (e.target.tagName === 'INPUT') return;
+    const c = el.dataset.tog; S.collapsed.has(c) ? S.collapsed.delete(c) : S.collapsed.add(c); renderGewerke();
+  });
+  document.querySelectorAll('[data-gall]').forEach(el => el.onchange = () => {
+    const c = el.dataset.gall, its = groups().find(([k]) => k === c)[1];
+    its.forEach(it => el.checked ? S.pick.add(c + '|' + it.oz) : S.pick.delete(c + '|' + it.oz)); renderGewerke();
+  });
+  document.querySelectorAll('[data-pick]').forEach(el => el.onchange = () => {
+    el.checked ? S.pick.add(el.dataset.pick) : S.pick.delete(el.dataset.pick); renderGewerke();
+  });
+  document.querySelectorAll('[data-rm]').forEach(el => el.onclick = () => {
+    const [c, oz] = splitKey(el.dataset.rm); S.assign.get(oz).delete(c); S.pick.delete(c + '|' + oz); renderGewerke();
+  });
+  document.querySelectorAll('[data-add]').forEach(el => el.onchange = () => {
+    const oz = el.dataset.add, c = el.value; if (!c) return;
+    // Eigenleistung und Anfrage dürfen zusammen vorkommen (z. B. selbst ausführen, aber Preis vergleichen)
+    S.assign.get(oz).add(c); if (c !== EIGEN) S.pick.add(c + '|' + oz);
+    renderGewerke();
+  });
+  const act = activeGw();
+  foot(`<span class="mut">${act.length} Gewerke werden angefragt</span><button class="b" ${act.length ? '' : 'disabled'} onclick="go(2)">Weiter zur Baustelle</button>`);
+}
+function splitKey(k) { const i = k.indexOf('|'); return [k.slice(0, i), k.slice(i + 1)]; }
+
+// ------------------------------------------------------------ 3. Baustelle
+// Baustelle aus dem LV erraten: Straße aus LV-Bezeichnung, Abschnittstiteln oder Dateiname, Ort aus dem Auftraggeber
+const STRASSE = /\b([A-ZÄÖÜ][a-zäöüß-]+(?:er)? (?:Straße|Str\.|Weg|Allee|Ring|Platz|Damm|Chaussee)|[A-ZÄÖÜ][a-zäöüß-]+(?:straße|str\.|weg|allee|ring|platz|damm|chaussee))(?![a-zäöüß])/;
+const STRNR = /\b([ABLK] ?\d{1,4})\b/;
+// Ort nur, wenn eine Stadt (oder ihr Verkehrsbetrieb) ausschreibt; der Landesbetrieb baut nicht an seinem Sitz
+function agOrt(info) {
+  const ag = info.auftraggeber || '', m = /Stadt\s+(\S+)/.exec(ag);
+  return m ? m[1] : /moBiel/i.test(ag) ? 'Bielefeld' : '';
+}
+function guessSite(lv, file) {
+  const info = lv.info, ort = agOrt(info);
+  const titles = [];
+  (function walk(g, d) { for (const c of g.children) if (!c.records) { titles.push(c.title); if (d < 2) walk(c, d + 1); } })(lv.root, 0);
+  const texts = [info.bezeichnung, ...titles, (file || '').replace(/[_]+/g, ' ')];
+  const str = texts.map(t => STRASSE.exec(t || '')).find(Boolean)?.[1].replace(/Str\.$/, 'Straße');
+  if (str) return ort ? `${str}, ${ort}` : str;
+  // Landesstraßen o. Ä.: Straßennummer als Hinweis, Ort muss ergänzt werden
+  const nr = STRNR.exec(info.bezeichnung || '');
+  return [nr && nr[1], ort].filter(Boolean).join(', ');
+}
+const ortIndex = new Map(Object.entries(DATA.orte).map(([o, p]) => [o.toLowerCase(), p]));
+async function locate(q) {
+  q = q.trim();
+  const plz = /\b(\d{5})\b/.exec(q);
+  if (plz && DATA.plz[plz[1]]) { const [lat, lng] = DATA.plz[plz[1]]; return { label: 'PLZ ' + plz[1], lat, lng, src: 'PLZ-Mittelpunkt' }; }
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=de&q=' + encodeURIComponent(q));
+    const j = await r.json();
+    if (j.length) return { label: j[0].display_name, lat: +j[0].lat, lng: +j[0].lon, src: 'Adresssuche (OpenStreetMap)' };
+  } catch (e) { /* offline: weiter mit Ortsliste */ }
+  // Ortsname irgendwo im Text suchen, z. B. "Detmolder Straße, Bielefeld"
+  const words = q.split(/[,;]/).map(w => w.trim()).concat(q.split(/[\s,;]+/)).reverse();
+  const hit = words.find(w => ortIndex.has(w.toLowerCase()));
+  const p = hit && ortIndex.get(hit.toLowerCase()); q = hit || q;
+  if (p && DATA.plz[p]) { const [lat, lng] = DATA.plz[p]; return { label: q + ' (PLZ ' + p + ')', lat, lng, src: 'Ortsliste' }; }
+  return null;
+}
+function renderSite() {
+  const act = activeGw();
+  $('#step').innerHTML = `
+  <div class="card"><h2>Lage der Baustelle</h2>
+    <p class="mut">Vorschlag aus ${esc(S.siteSrc || 'dem LV')}. LV: „${esc(S.lv.info.bezeichnung || '–')}“, Auftraggeber ${esc(S.lv.info.auftraggeber)}. Bei Bedarf Straße und Ort, PLZ oder Ort anpassen.</p>
+    <div class="row"><input type="text" id="siteIn" value="${esc(S.siteText)}" placeholder="z. B. Detmolder Straße, Bielefeld oder 33604" style="min-width:380px">
+      <button class="b" id="siteGo">Verorten</button><span id="siteMsg"></span></div>
+  </div>`;
+  const msg = () => $('#siteMsg').innerHTML = S.site ? `<span class="badge ok">${esc(S.site.label)}</span> <span class="mut">${S.site.src}</span>` : '';
+  msg();
+  $('#siteGo').onclick = async () => {
+    S.siteText = $('#siteIn').value; $('#siteMsg').textContent = 'suche …';
+    const r = await locate(S.siteText);
+    if (!r) { $('#siteMsg').innerHTML = '<span class="badge bad">nicht gefunden, bitte PLZ eingeben</span>'; return; }
+    S.site = r; renderSite();
+  };
+  $('#siteIn').onkeydown = e => { if (e.key === 'Enter') $('#siteGo').click(); };
+  foot(`<button class="s" onclick="go(1)">Zurück</button><button class="b" ${S.site ? '' : 'disabled'} onclick="go(3)">Weiter zu den Anbietern</button>`);
+}
+function dist(a, b) {
+  const R = 6371, r = x => x * Math.PI / 180;
+  const dLa = r(b[0] - a.lat), dLo = r(b[1] - a.lng);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b[0])) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function candidates(c) {
+  const arten = new Set(GW[c]?.arten || []);
+  return DATA.firms.filter(f => f.arten.some(a => arten.has(a))).map(f => {
+    const d = f.geo && S.site ? dist(S.site, f.geo) : null;
+    return { f, d, sp: sperrStatus(f) };
+  }).sort((a, b) => (a.d ?? 1e9) - (b.d ?? 1e9));
+}
+
+// ------------------------------------------------------------ 4. Anbieter
+// Anzahl für „die nächsten X auswählen“, wird im Browser gemerkt
+const nearN = () => store.get('nearN', 5);
+function renderFirms() {
+  const act = activeGw();
+  if (!S.openGw || !act.includes(S.openGw)) S.openGw = act[0];
+  const c = S.openGw;
+  act.forEach(k => { if (!S.firms[k]) S.firms[k] = new Set(); });
+  const list = candidates(c);
+  const near = list.filter(x => x.d != null), noGeo = list.filter(x => x.d == null);
+  const sel = S.firms[c];
+  const missingN = act.filter(k => !S.firms[k].size).length;
+  const row = x => {
+    const n = NU[firmKey(x.f)];
+    const hints = x.f.bem.filter(b => b.trim()).map(b => `<div class="hint">${esc(b)}</div>`).join('');
+    return `<tr class="${x.sp?.aktiv ? 'sperr' : ''} ${sel.has(x.f.id) ? 'sel' : ''}">
+      <td><input type="checkbox" data-firm="${x.f.id}" ${sel.has(x.f.id) ? 'checked' : ''} ${x.sp?.aktiv ? 'disabled title="gesperrt"' : ''}></td>
+      <td><a href="#" data-nu="${esc(firmKey(x.f))}">${esc(x.f.firma)}</a><div class="lt">${esc(x.f.plz)} ${esc(x.f.ort)} · ${esc(x.f.mail || 'keine E-Mail')}</div>
+        ${x.sp ? `<div class="${x.sp.aktiv ? 'hint' : 'lt'}" style="${x.sp.aktiv ? 'color:var(--bad)' : ''}">${esc(x.sp.text)}</div>` : ''}
+        ${n?.comment ? `<div class="lt">💬 ${esc(n.comment)}</div>` : ''}${hints}</td>
+      <td style="white-space:nowrap">${fmtKm(x.d)}</td>
+      <td>${x.f.arten.filter(a => GW[c].arten.includes(a)).map(a => `<span class="chip">${esc(a)}</span>`).join('')}</td></tr>`;
+  };
+  const artOpts = DATA.arten.filter(a => !GW[c].arten.includes(a)).map(a => `<option value="${esc(a)}">`).join('');
+  $('#step').innerHTML = `
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <div class="row">
+          <span class="mut">Die nächsten</span><input type="number" id="nearN" min="1" max="50" value="${nearN()}" style="width:4.5em"><span class="mut">Firmen je Gewerk anfragen:</span>
+          <button class="b" id="nearAll">in allen ${act.length} Gewerken</button><button class="s" id="near5">nur in ${esc(gwName(c))}</button>
+        </div>
+        <div class="mut" style="font-size:13px;margin-top:6px">Gesperrte Firmen werden übersprungen. Bereits gesetzte Haken bleiben erhalten. ${act.length - missingN} von ${act.length} Gewerken haben Anbieter.</div>
+      </div>
+      <div class="card"><div class="row">
+        <span class="mut">Gewerk</span>
+        <select id="gwSel">${act.map(k => `<option value="${k}" ${k === c ? 'selected' : ''}>${esc(gwName(k))} (${S.firms[k].size} ausgewählt)</option>`).join('')}</select>
+        <span class="sp"></span><button class="s" id="none">Auswahl leeren</button></div>
+        <div class="mut" style="font-size:13px;margin-top:6px">sortiert nach Entfernung zu ${esc(S.site.label)}</div></div>
+      <div class="card"><h2>${near.length} passende Anbieter, die nächsten zuerst</h2>
+        <div class="list-scroll"><table><tr><th></th><th>Firma</th><th>Entfernung</th><th>Passende Arbeiten</th></tr>${near.map(row).join('') || '<tr><td colspan="4" class="mut">Keine passenden Anbieter. Rechts „Art der Arbeiten“ ergänzen.</td></tr>'}</table></div>
+        ${noGeo.length ? `<details style="margin-top:8px"><summary class="mut">${noGeo.length} ohne verwertbare PLZ (z. B. Ausland)</summary><table>${noGeo.map(row).join('')}</table></details>` : ''}
+      </div>
+    </div>
+    <div class="card"><h2>Passende „Art der Arbeiten“</h2>
+      <p class="mut" style="margin-top:0">Diese Einträge der Lieferantenliste gehören zu ${esc(gwName(c))}. Änderungen werden gespeichert.</p>
+      <div>${GW[c].arten.map(a => `<span class="chip">${esc(a)}<b data-delart="${esc(a)}">×</b></span>`).join('') || '<span class="mut">keine</span>'}</div>
+      <div class="row" style="margin-top:8px"><input type="text" id="artIn" list="artList" placeholder="Art hinzufügen …" style="flex:1"><datalist id="artList">${artOpts}</datalist><button class="s" id="artAdd">Hinzufügen</button></div>
+      <h2 style="margin-top:18px">Positionen in dieser Anfrage</h2>
+      <div class="list-scroll" style="max-height:300px">${S.lv.items.filter(it => S.pick.has(c + '|' + it.oz)).map(it => `<div><span class="oz">${esc(it.oz.trim().replace(/\s+/g, '.'))}</span> ${esc(it.kurztext)}</div>`).join('')}</div>
+    </div>
+  </div>`;
+  $('#gwSel').onchange = e => { S.openGw = e.target.value; renderFirms(); };
+  document.querySelectorAll('[data-firm]').forEach(el => el.onchange = () => {
+    el.checked ? sel.add(+el.dataset.firm) : sel.delete(+el.dataset.firm); renderFirms();
+  });
+  $('#nearN').onchange = e => { store.set('nearN', Math.max(1, Math.min(50, +e.target.value || 5))); };
+  $('#nearN').onkeydown = e => { if (e.key === 'Enter') $('#nearAll').click(); };
+  const nearestN = () => { const n = Math.max(1, Math.min(50, +$('#nearN').value || 5)); store.set('nearN', n); return n; };
+  const pickNearest = (k, n) => candidates(k).filter(x => x.d != null && !x.sp?.aktiv).slice(0, n).forEach(x => S.firms[k].add(x.f.id));
+  $('#near5').onclick = () => { pickNearest(c, nearestN()); renderFirms(); };
+  $('#nearAll').onclick = () => { const n = nearestN(); act.forEach(k => pickNearest(k, n)); renderFirms(); };
+  $('#none').onclick = () => { sel.clear(); renderFirms(); };
+  document.querySelectorAll('[data-delart]').forEach(el => el.onclick = () => { GW[c].arten = GW[c].arten.filter(a => a !== el.dataset.delart); saveGW(); renderFirms(); });
+  $('#artAdd').onclick = () => { const v = $('#artIn').value.trim(); if (DATA.arten.includes(v)) { GW[c].arten.push(v); saveGW(); renderFirms(); } };
+  document.querySelectorAll('[data-nu]').forEach(el => el.onclick = e => { e.preventDefault(); openNU(el.dataset.nu); });
+  const missing = act.filter(k => !S.firms[k].size).length;
+  foot(`<span class="mut">${missing ? missing + ' Gewerke noch ohne Anbieter' : 'Alle Gewerke haben Anbieter'}</span><button class="s" onclick="go(2)">Zurück</button><button class="b" onclick="go(4)">Weiter zum Export</button>`);
+}
+
+// ------------------------------------------------------------ 5. Export
+function stem() { return S.file.replace(/\.[^.]+$/, ''); }
+function ext() { const m = /\.[^.]+$/.exec(S.file); return m ? m[0] : S.lv.format === 'x83' ? '.X83' : '.D83'; }
+function datum() { const d = new Date(); return [d.getDate(), d.getMonth() + 1, d.getFullYear() % 100].map(x => String(x).padStart(2, '0')).join('.'); }
+function anfrageFiles() {
+  return activeGw().map(c => {
+    const oz = new Set(S.lv.items.filter(it => S.pick.has(c + '|' + it.oz)).map(it => it.oz));
+    return { c, name: `${c}_${stem()}${ext()}`, text: S.lv.format === 'x83' ? X83.build(S.lv, gwName(c), oz, new Date().toISOString().slice(0, 10)) : GAEB.build(S.lv, gwName(c), oz, datum()), n: oz.size };
+  });
+}
+function firmsOf(c) { return DATA.firms.filter(f => (S.firms[c] || new Set()).has(f.id)); }
+function renderExport() {
+  const files = anfrageFiles();
+  $('#step').innerHTML = `
+  <div class="card"><h2>Zusammenfassung</h2>
+    <table><tr><th>Gewerk</th><th>Datei</th><th>Positionen</th><th>Anbieter</th><th>Hinweise</th><th></th></tr>
+    ${files.map(x => {
+      const fs = firmsOf(x.c);
+      const h = [...new Set(fs.flatMap(f => f.bem.filter(b => /mitschicken|telefonisch/i.test(b)).map(b => b.trim())))];
+      const mails = fs.map(f => f.mail).filter(Boolean);
+      const subj = encodeURIComponent(`Anfrage ${gwName(x.c)} – ${S.lv.info.lv} ${S.lv.info.bezeichnung}`);
+      return `<tr><td>${esc(gwName(x.c))}</td><td class="oz">${esc(x.name)}</td><td>${x.n}</td>
+        <td>${fs.length ? fs.map(f => esc(f.firma)).join('<br>') : '<span class="badge warn">keine</span>'}</td>
+        <td>${h.map(t => `<div class="hint">${esc(t)}</div>`).join('')}</td>
+        <td>${mails.length ? `<a href="mailto:?bcc=${encodeURIComponent(mails.join(','))}&subject=${subj}">E-Mail öffnen</a>` : ''}</td></tr>`;
+    }).join('')}</table>
+    <p class="mut">Beim Herunterladen merkt sich das Tool die Zuordnung dieses LV als Beispiel für künftige Vorschläge (siehe Reiter „Regeln“).</p>
+    <p class="mut">Die E-Mail öffnet sich im Mailprogramm mit allen Anbietern in BCC. Die D83-Datei muss dort angehängt werden. Es wird nichts automatisch verschickt.</p>
+  </div>`;
+  foot(`<button class="s" onclick="go(3)">Zurück</button><button class="b" id="zipBtn">Alles als ZIP herunterladen</button>`);
+  $('#zipBtn').onclick = () => {
+    learnFromCurrent();
+    const entries = files.map(x => [x.name, S.lv.format === 'x83' ? new TextEncoder().encode(x.text) : GAEB.encode(x.text)]);
+    const csv = [['Gewerk', 'Kürzel', 'Datei', 'Firma', 'Ort', 'Entfernung km', 'E-Mail', 'Telefon', 'Hinweise']];
+    for (const x of files) for (const f of firmsOf(x.c))
+      csv.push([gwName(x.c), x.c, x.name, f.firma, f.ort, f.geo ? Math.round(dist(S.site, f.geo)) : '', f.mail, f.tel, f.bem.join(' | ')]);
+    const csvText = '﻿' + csv.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+    entries.push(['Verteiler.csv', new TextEncoder().encode(csvText)]);
+    download(zip(entries), `Anfragen_${stem()}.zip`, 'application/zip');
+  };
+}
+// Bestätigte Zuordnung als Beispiele speichern, damit spätere Vorschläge besser werden
+function learnFromCurrent() {
+  const src = S.file;
+  LEARNED = LEARNED.filter(e => e.src !== src).concat(S.lv.items.filter(it => S.assign.get(it.oz).size).map(it => ({
+    text: (it.kurztext + ' ' + it.langtext.slice(0, 200)).trim(), kurz: it.kurztext, kat: it.kat, src,
+    codes: [...S.assign.get(it.oz)].filter(isGw),
+  })));
+  store.set('beispiele', LEARNED); rebuild();
+}
+// In claude.ai läuft die Seite in einem Rahmen, der Downloads nur über die downloads-Fähigkeit erlaubt
+const dlCap = window.claude?.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+async function download(bytes, name, type) {
+  const cap = await dlCap;
+  if (cap) {
+    try { await cap.save({ filename: name, data: bytes instanceof Blob ? bytes : new Blob([bytes], { type }) }); }
+    catch (e) { if (e?.code !== 'declined') console.warn('Download nicht möglich', e); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([bytes], { type }));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+// Minimaler ZIP-Writer (ohne Kompression)
+function zip(entries) {
+  const crcT = new Uint32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c; });
+  const crc = b => { let c = ~0; for (const x of b) c = crcT[(c ^ x) & 255] ^ (c >>> 8); return ~c >>> 0; };
+  const parts = [], central = []; let off = 0;
+  const u16 = v => [v & 255, v >>> 8 & 255], u32 = v => [v & 255, v >>> 8 & 255, v >>> 16 & 255, v >>> 24 & 255];
+  for (const [name, data] of entries) {
+    const nb = new TextEncoder().encode(name), c = crc(data);
+    const common = [...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(c), ...u32(data.length), ...u32(data.length), ...u16(nb.length), ...u16(0)];
+    const local = new Uint8Array([...u32(0x04034b50), ...common, ...nb]);
+    parts.push(local, data);
+    central.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...common, ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off), ...nb]));
+    off += local.length + data.length;
+  }
+  const cl = central.reduce((s, x) => s + x.length, 0);
+  const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(entries.length), ...u16(entries.length), ...u32(cl), ...u32(off), ...u16(0)]);
+  return new Blob([...parts, ...central, end]);
+}
+
+// ------------------------------------------------------------ Subunternehmer
+let nuQ = '', nuOpen = null, nuOnlyNotes = false;
+function openNU(key) { nuOpen = key; showTab('N'); }
+function renderNU() {
+  const q = nuQ.toLowerCase();
+  const hits = DATA.firms.filter(f => (!nuOnlyNotes || NU[firmKey(f)]) &&
+    (!q || (f.firma + ' ' + f.ort + ' ' + f.arten.join(' ')).toLowerCase().includes(q)));
+  const f = nuOpen && DATA.firms.find(x => firmKey(x) === nuOpen);
+  const n = f ? (NU[nuOpen] || {}) : null;
+  $('#viewN').innerHTML = `
+  <div class="grid2">
+    <div class="card">
+      <div class="row"><input type="search" id="nuQ" placeholder="Firma, Ort oder Art der Arbeiten …" value="${esc(nuQ)}" style="flex:1">
+        <label><input type="checkbox" id="nuNotes" ${nuOnlyNotes ? 'checked' : ''}> nur mit Notiz/Sperre</label></div>
+      <p class="mut">${hits.length} Firmen${hits.length > 200 ? ', die ersten 200 werden angezeigt' : ''}</p>
+      <div class="list-scroll"><table><tr><th>Firma</th><th>Ort</th><th>Status</th></tr>
+      ${hits.slice(0, 200).map(x => { const sp = sperrStatus(x), nn = NU[firmKey(x)];
+        return `<tr class="${firmKey(x) === nuOpen ? 'sel' : ''}"><td><a href="#" data-k="${esc(firmKey(x))}">${esc(x.firma)}</a><div class="lt">${esc(x.arten.slice(0, 4).join(', '))}${x.arten.length > 4 ? ' …' : ''}</div></td>
+        <td>${esc(x.ort)}</td><td>${sp ? `<span class="badge ${sp.aktiv ? 'bad' : ''}">${sp.aktiv ? 'gesperrt' : 'Sperre abgelaufen'}</span>` : ''} ${nn?.comment ? '<span class="badge">Notiz</span>' : ''}</td></tr>`; }).join('')}
+      </table></div>
+      <div class="row" style="margin-top:10px"><button class="s" id="nuExp">Notizen exportieren</button><label class="s" style="cursor:pointer">Notizen importieren<input type="file" id="nuImp" accept=".json" hidden></label>
+        <span class="mut">Notizen werden in diesem Browser gespeichert.</span></div>
+    </div>
+    <div class="card">${f ? `
+      <h2>${esc(f.firma)}</h2>
+      <div class="lt">${esc(f.str)}, ${esc(f.plz)} ${esc(f.ort)}</div>
+      <div class="lt">${esc(f.mail)} · ${esc(f.tel)}${f.name ? ' · ' + esc(f.name) : ''}</div>
+      <div style="margin:8px 0">${f.arten.map(a => `<span class="chip">${esc(a)}</span>`).join('')}</div>
+      ${f.bem.filter(b => b.trim()).map(b => `<div class="hint">Liste: ${esc(b)}</div>`).join('')}
+      <h2 style="margin-top:14px">Kommentar</h2>
+      <textarea id="nuC" placeholder="z. B. Erfahrungen, Ansprechpartner, Preisniveau">${esc(n.comment || '')}</textarea>
+      <h2 style="margin-top:14px">Sperre</h2>
+      <label><input type="checkbox" id="nuS" ${n.sperre ? 'checked' : ''}> nicht anfragen</label>
+      <div class="row" style="margin-top:6px"><span>bis</span><input type="date" id="nuB" value="${esc(n.bis || '')}"><span class="mut">leer = unbefristet</span></div>
+      <input type="text" id="nuG" placeholder="Grund" value="${esc(n.grund || '')}" style="width:100%;margin-top:6px">
+      <div class="row" style="margin-top:10px"><button class="b" id="nuSave">Speichern</button><span id="nuMsg" class="mut"></span></div>`
+      : '<p class="mut">Firma links auswählen, um Kommentare und Sperren zu pflegen.</p>'}</div>
+  </div>`;
+  $('#nuQ').oninput = e => { nuQ = e.target.value; const p = e.target.selectionStart; renderNU(); const x = $('#nuQ'); x.focus(); x.setSelectionRange(p, p); };
+  $('#nuNotes').onchange = e => { nuOnlyNotes = e.target.checked; renderNU(); };
+  document.querySelectorAll('[data-k]').forEach(el => el.onclick = e => { e.preventDefault(); nuOpen = el.dataset.k; renderNU(); });
+  $('#nuExp').onclick = () => download(new TextEncoder().encode(JSON.stringify({ nu: NU, gewerke: store.get('gewerke', {}) }, null, 1)), 'Subunternehmer-Notizen.json', 'application/json');
+  $('#nuImp').onchange = e => e.target.files[0].text().then(t => {
+    const j = JSON.parse(t); Object.assign(NU, j.nu || {}); saveNU();
+    if (j.gewerke) { Object.assign(GW, j.gewerke); saveGW(); } renderNU();
+  });
+  if (f) $('#nuSave').onclick = () => {
+    const v = { comment: $('#nuC').value.trim(), sperre: $('#nuS').checked, bis: $('#nuB').value, grund: $('#nuG').value.trim() };
+    if (!v.comment && !v.sperre) delete NU[nuOpen]; else NU[nuOpen] = v;
+    saveNU(); $('#nuMsg').textContent = 'gespeichert'; setTimeout(renderNU, 600);
+  };
+}
+function showTab(t) {
+  for (const x of 'ANRH') { $('#tab' + x).classList.toggle('on', t === x); $('#view' + x).hidden = t !== x; }
+  if (t === 'N') { foot(''); renderNU(); } else if (t === 'R') { foot(''); renderRules(); } else if (t === 'H') { foot(''); renderHelp(); } else render();
+}
+$('#tabR').onclick = () => showTab('R');
+$('#tabA').onclick = () => showTab('A');
+$('#tabN').onclick = () => showTab('N');
+$('#tabH').onclick = () => showTab('H');
+// ------------------------------------------------------------ Regeln
+function renderRules() {
+  const opts = sel => Object.keys(GW).sort((a, b) => gwName(a).localeCompare(gwName(b)))
+    .map(c => `<option value="${c}" ${c === sel ? 'selected' : ''}>${esc(gwName(c))}</option>`).join('');
+  const bySrc = {}; LEARNED.forEach(e => bySrc[e.src] = (bySrc[e.src] || 0) + 1);
+  $('#viewR').innerHTML = `
+  <div class="card"><h2>So entsteht der Vorschlag</h2>
+    <p class="mut" style="margin:0">Für jede Position wird der Reihe nach geprüft: 1. passt eine <b>Katalog-Regel</b> (nur bei LV mit Katalognummern, z. B. Straßen.NRW), 2. kommt ein <b>Stichwort</b> im Kurztext vor, 3. sonst wird die <b>ähnlichste bekannte Position</b> gesucht – aus den 7 Beispielpaketen und allen LV, die hier schon exportiert wurden. Regeländerungen wirken beim nächsten Einlesen oder über „Vorschläge neu berechnen“.</p>
+    ${S.lv ? '<div class="row" style="margin-top:8px"><button class="s" id="reapply">Vorschläge für aktuelles LV neu berechnen</button><span class="mut">überschreibt die Zuordnung im aktuellen LV</span></div>' : ''}
+  </div>
+  <div class="grid2" style="grid-template-columns:1fr 1fr">
+    <div class="card"><h2>Stichwörter</h2>
+      <table><tr><th>Stichwort im Kurztext</th><th>Gewerk</th><th></th></tr>
+      ${KW.map((r, i) => `<tr><td>${esc(r.wort)}</td><td>${r.codes.map(c => esc(gwName(c))).join(', ')}</td><td><button class="s" data-kwdel="${i}">×</button></td></tr>`).join('')}
+      <tr><td><input type="text" id="kwW" placeholder="z. B. leitlinie"></td><td><select id="kwG">${opts('')}</select></td><td><button class="s" id="kwAdd">+</button></td></tr></table>
+    </div>
+    <div class="card"><h2>Katalog-Regeln</h2>
+      <p class="mut" style="margin-top:0">Nummer = Leistungsbereich bzw. Anfang der Katalognummer (ohne Ausgabe). Aus den Beispielpaketen abgeleitet, Trefferquote in Klammern.</p>
+      <table><tr><th>Nummer beginnt mit</th><th>Gewerk</th><th></th></tr>
+      ${KAT.map((r, i) => `<tr><td class="oz">${esc(r.prefix)}</td><td>${r.codes.length ? r.codes.map(c => esc(gwName(c))).join(' + ') : '<span class="mut">Eigenleistung</span>'} ${r.quote ? `<span class="mut">(${r.quote} % von ${r.n})</span>` : ''}</td><td><button class="s" data-katdel="${i}">×</button></td></tr>`).join('')}
+      <tr><td><input type="text" id="katP" placeholder="z. B. 131" style="width:110px"></td><td><select id="katG"><option value="">Eigenleistung</option>${opts('')}</select></td><td><button class="s" id="katAdd">+</button></td></tr></table>
+    </div>
+  </div>
+  <div class="card"><h2>Gelernte Beispiele</h2>
+    ${Object.keys(bySrc).length ? `<table><tr><th>LV</th><th>Positionen</th><th></th></tr>${Object.entries(bySrc).map(([s, n]) => `<tr><td>${esc(s)}</td><td>${n}</td><td><button class="s" data-srcdel="${esc(s)}">entfernen</button></td></tr>`).join('')}</table>`
+      : '<p class="mut">Noch keine. Jedes exportierte LV wird hier als Beispiel gespeichert.</p>'}
+    <div class="row" style="margin-top:10px"><button class="s" id="rExp">Regeln exportieren</button><label class="s" style="cursor:pointer">Regeln importieren<input type="file" id="rImp" accept=".json" hidden></label>
+      <button class="s" id="rReset">Auf Standard zurücksetzen</button><span class="mut">Gespeichert in diesem Browser.</span></div>
+  </div>`;
+  const save = () => { store.set('kw', KW); store.set('kat', KAT); store.set('beispiele', LEARNED); rebuild(); renderRules(); };
+  document.querySelectorAll('[data-kwdel]').forEach(b => b.onclick = () => { KW.splice(+b.dataset.kwdel, 1); save(); });
+  document.querySelectorAll('[data-katdel]').forEach(b => b.onclick = () => { KAT.splice(+b.dataset.katdel, 1); save(); });
+  document.querySelectorAll('[data-srcdel]').forEach(b => b.onclick = () => { LEARNED = LEARNED.filter(e => e.src !== b.dataset.srcdel); save(); });
+  $('#kwAdd').onclick = () => { const w = $('#kwW').value.trim(); if (w) { KW.push({ wort: w, codes: [$('#kwG').value] }); save(); } };
+  $('#katAdd').onclick = () => { const p = $('#katP').value.replace(/\D/g, ''); if (p) { KAT.push({ prefix: p, codes: $('#katG').value ? [$('#katG').value] : [] }); KAT.sort((a, b) => b.prefix.length - a.prefix.length); save(); } };
+  $('#rExp').onclick = () => download(new TextEncoder().encode(JSON.stringify({ kw: KW, kat: KAT, beispiele: LEARNED }, null, 1)), 'Gewerke-Regeln.json', 'application/json');
+  $('#rImp').onchange = e => e.target.files[0].text().then(t => { const j = JSON.parse(t); KW = j.kw || KW; KAT = j.kat || KAT; LEARNED = j.beispiele || LEARNED; save(); });
+  // zweistufig statt confirm(), das im eingebetteten Rahmen nicht angezeigt wird
+  $('#rReset').onclick = e => {
+    const b = e.target;
+    if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Wirklich zurücksetzen? Gelernte Beispiele bleiben'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Auf Standard zurücksetzen'; }, 4000); return; }
+    KW = KW_SEED.slice(); KAT = ENGINE.learnKatRules(CORPUS); save();
+  };
+  if (S.lv) $('#reapply').onclick = () => { applySuggestions(); showTab('A'); go(1); };
+}
+// ------------------------------------------------------------ Anleitung
+function renderHelp() {
+  $('#viewH').innerHTML = `
+  <div class="card">
+    <h2>Anleitung</h2>
+    <p style="margin:0">Mit diesem PoC wird aus einem Leistungsverzeichnis (LV) in wenigen Minuten ein Satz Anfragen an Subunternehmer: je Gewerk eine eigene GAEB-Datei mit den passenden Positionen und eine Liste der nächstgelegenen Anbieter. Die Arbeit läuft in fünf Schritten im Reiter „Anfrage“. Die Dateien werden nur im Browser verarbeitet und nirgends hochgeladen.</p>
+    <div class="toc"><a href="#h1">1. LV einlesen</a><a href="#h2">2. Leistungen &amp; Gewerke</a><a href="#h3">3. Baustelle</a><a href="#h4">4. Anbieter</a><a href="#h5">5. Export</a><a href="#hN">Subunternehmer</a><a href="#hR">Regeln</a><a href="#hT">Tipps</a></div>
+  </div>
+
+  <div class="card">
+    <h3 id="h1" style="margin-top:0">1. LV einlesen</h3>
+    <ul>
+      <li>Am einfachsten den ganzen Ausschreibungsordner auf die Fläche ziehen oder über „Ordner wählen“ auswählen.</li>
+      <li>Der PoC sucht darin das Gesamt-LV (GAEB 90 <kbd>.D83</kbd>/<kbd>.P83</kbd> oder GAEB XML <kbd>.X83</kbd>). Liegen schon Gewerke-Dateien wie <kbd>ASPH_xyz.D83</kbd> daneben, nimmt er die Datei, auf die sie sich beziehen.</li>
+      <li>Liegt eine PDF mit „Aufforderung“ im Namen bei (Aufforderung zur Angebotsabgabe), liest er daraus die Baustelle.</li>
+      <li>Alternativ über „Einzelne LV-Datei wählen“ nur das LV öffnen.</li>
+    </ul>
+
+    <h3 id="h2">2. Leistungen &amp; Gewerke</h3>
+    <ul>
+      <li>Nach dem Einlesen sind alle Positionen „nicht zugeordnet“. <b>Intelligente Zuordnung</b> schlägt für jede Position ein oder mehrere Gewerke vor. Bereits von Hand zugeordnete Positionen bleiben dabei unverändert.</li>
+      <li>Unter jeder Position steht in grau, warum der Vorschlag kommt: Katalog-Regel, Stichwort oder eine ähnliche Position aus einem früheren LV. <span class="badge warn">unsicher</span> heißt, dass die Ähnlichkeit gering ist. Diese Positionen zuerst prüfen.</li>
+      <li><b>Eigenleistung</b> bedeutet: wird selbst ausgeführt und nicht angefragt.</li>
+      <li>Korrigieren: über „+ Gewerk / Eigenleistung“ ein Gewerk hinzufügen, mit × eines entfernen. Eine Position kann mehreren Gewerken zugeordnet sein.</li>
+      <li>Ansicht <b>Nach Gewerk</b>: Häkchen legen fest, welche Positionen in die Anfrage des jeweiligen Gewerks kommen. Ansicht <b>LV-Reihenfolge</b>: Klick auf ein Gewerk schaltet das Mitschicken ein oder aus (durchgestrichen = nicht mitschicken).</li>
+      <li>Mit dem Suchfeld lassen sich Positionen nach Kurztext oder OZ filtern.</li>
+    </ul>
+
+    <h3 id="h3">3. Baustelle</h3>
+    <ul>
+      <li>Der Vorschlag kommt aus der Aufforderung (PDF) oder aus dem LV, z. B. „Detmolder Straße, Bielefeld“.</li>
+      <li>Bei Bedarf anpassen und <b>Verorten</b> drücken. Am zuverlässigsten ist eine Postleitzahl. Ohne Internetverbindung zur Adresssuche (OpenStreetMap) verortet der PoC über PLZ oder Ortsnamen.</li>
+      <li>Die Lage dient nur dazu, die Anbieter nach Entfernung zu sortieren.</li>
+    </ul>
+
+    <h3 id="h4">4. Anbieter</h3>
+    <ul>
+      <li>Über „Gewerk“ ein Gewerk wählen. Die Liste zeigt alle Firmen aus der Lieferantenliste, deren „Art der Arbeiten“ zum Gewerk passt, die nächsten zuerst.</li>
+      <li><b>Die nächsten X Firmen je Gewerk anfragen</b>: Anzahl eintragen (Standard 5) und <b>„in allen Gewerken“</b> klicken. Das setzt in jedem Gewerk die Haken bei den X nächstgelegenen, nicht gesperrten Firmen, ohne dass man jedes Gewerk einzeln öffnen muss. „nur in …“ macht dasselbe nur für das gerade gewählte Gewerk. Bereits gesetzte Haken bleiben erhalten, die Anzahl wird gemerkt. Einzelne Firmen lassen sich per Haken dazunehmen oder abwählen.</li>
+      <li>Gesperrte Firmen sind ausgegraut und nicht wählbar. Hinweise aus der Lieferantenliste (z. B. „telefonisch anfragen“) stehen in orange darunter.</li>
+      <li>Rechts steht, welche „Art der Arbeiten“ zum Gewerk gehören. Fehlt eine Art, dort ergänzen. Das wird gespeichert und gilt für alle weiteren Anfragen.</li>
+      <li>Ein Klick auf den Firmennamen öffnet die Firma im Reiter „Subunternehmer“.</li>
+    </ul>
+
+    <h3 id="h5">5. Export</h3>
+    <ul>
+      <li>Die Zusammenfassung zeigt je Gewerk die Datei, die Zahl der Positionen und die gewählten Anbieter.</li>
+      <li><b>Alles als ZIP herunterladen</b> liefert je Gewerk eine GAEB-Datei im Format des Original-LV (z. B. <kbd>ASPH_&lt;LV&gt;.D83</kbd>) und die <kbd>Verteiler.csv</kbd> mit Firma, Ort, Entfernung, E-Mail, Telefon und Hinweisen. Die CSV öffnet sich direkt in Excel.</li>
+      <li>„E-Mail öffnen“ startet das Mailprogramm mit allen Anbietern in BCC. Die GAEB-Datei muss dort von Hand angehängt werden. Es wird nichts automatisch verschickt. Falls der Link nichts tut, stehen die Adressen auch in der Verteiler.csv.</li>
+      <li>Beim Herunterladen merkt sich der PoC die Zuordnung als Beispiel. Spätere Vorschläge für ähnliche Positionen werden dadurch besser.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3 id="hN" style="margin-top:0">Reiter „Subunternehmer“</h3>
+    <ul>
+      <li>Suche über Firma, Ort oder Art der Arbeiten. „nur mit Notiz/Sperre“ zeigt nur gepflegte Firmen.</li>
+      <li>Je Firma lassen sich ein Kommentar und eine Sperre (optional mit Enddatum und Grund) speichern. Firmen, die in der Lieferantenliste mit „nicht mehr anfragen“ markiert sind, haben eine vorbelegte Sperre bis 31.12.2025. Danach erscheinen sie als „Sperre abgelaufen“ und sind wieder wählbar, bis die Sperre verlängert wird.</li>
+      <li>„Notizen exportieren“ und „importieren“ übertragen Kommentare, Sperren und geänderte Gewerke-Zuordnungen als JSON-Datei, z. B. auf einen anderen Rechner.</li>
+    </ul>
+
+    <h3 id="hR">Reiter „Regeln“</h3>
+    <p style="margin:0">Der Vorschlag prüft jede Position in dieser Reihenfolge:</p>
+    <ol>
+      <li><b>Katalog-Regel</b>: Die Katalognummer beginnt mit einer bekannten Nummer (nur bei LV mit Katalognummern, z. B. Straßen.NRW).</li>
+      <li><b>Stichwort</b>: Ein Stichwort steht im Kurztext, z. B. „Markierung“.</li>
+      <li><b>Ähnlichste bekannte Position</b> aus den Beispielpaketen und allen bereits exportierten LV.</li>
+    </ol>
+    <p>Stichwörter und Katalog-Regeln lassen sich hier ergänzen oder löschen. Gelernte Beispiele können je LV entfernt werden. Mit „Vorschläge für aktuelles LV neu berechnen“ wirken Änderungen sofort, dabei wird die Zuordnung im aktuellen LV überschrieben.</p>
+
+    <h3 id="hT">Tipps</h3>
+    <ul>
+      <li>Notizen, Regeln und gelernte Beispiele werden nur in diesem Browser gespeichert. Für einen anderen Rechner oder Browser über „exportieren“ und „importieren“ übertragen.</li>
+      <li>Ein neues LV lässt sich jederzeit über Schritt 1 einlesen. Die bisherige Zuordnung wird dann verworfen.</li>
+    </ul>
+  </div>`;
+  $('#viewH').querySelectorAll('.toc a').forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.getAttribute('href').slice(1)).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+}
+render();
+</script>
+</body>
+</html>

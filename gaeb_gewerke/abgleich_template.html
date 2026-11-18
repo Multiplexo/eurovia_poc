@@ -1,0 +1,284 @@
+<title>GAEB-Abgleich Gewerke-Anfragen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: Kopf mit Ampel-Bilanz, darunter Paketliste | Dateiliste | Detailvergleich (stapelt sich auf dem Handy) */
+:root {
+  --bg: #f5f6f8; --panel: #ffffff; --fg: #1d2330; --muted: #5d6675; --line: #dde1e8; --accent: #2f5d8a;
+  --ok: #1f7a4d; --ok-bg: #e3f3ea; --warn: #b4610b; --warn-bg: #fcefdc; --bad: #b3261e; --bad-bg: #fbe4e2;
+  --mark: #fff1b8; --mark-fg: #1d2330;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --panel: #1a2029; --fg: #e3e7ee; --muted: #9aa4b3; --line: #2c3440; --accent: #7fb0e0;
+  --ok: #5fcf95; --ok-bg: #173226; --warn: #f0a656; --warn-bg: #3a2a14; --bad: #f08a82; --bad-bg: #3d1d1b;
+  --mark: #5a4a10; --mark-fg: #fff6cf; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --panel: #1a2029; --fg: #e3e7ee; --muted: #9aa4b3; --line: #2c3440; --accent: #7fb0e0;
+  --ok: #5fcf95; --ok-bg: #173226; --warn: #f0a656; --warn-bg: #3a2a14; --bad: #f08a82; --bad-bg: #3d1d1b;
+  --mark: #5a4a10; --mark-fg: #fff6cf; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.5 }
+.wrap { max-width: 1440px; margin: 0 auto; padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; text-wrap: balance }
+h2 { font-size: 15px; font-weight: 600; margin: 0 }
+.sub { color: var(--muted); margin: 0; max-width: 75ch }
+.top { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; justify-content: space-between; margin-bottom: 20px }
+.tally { display: flex; gap: 8px; flex-wrap: wrap }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; min-width: 96px }
+.tile b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums }
+.tile span { font-size: 12px; color: var(--muted); letter-spacing: .02em }
+.tile.g b { color: var(--ok) } .tile.o b { color: var(--warn) } .tile.r b { color: var(--bad) }
+details.rules { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; margin-bottom: 20px }
+details.rules summary { cursor: pointer; font-weight: 500 }
+.rules .dot { display: inline-block; vertical-align: -1px }
+.rules ul { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; max-width: 95ch }
+.grid { display: grid; grid-template-columns: 260px 300px minmax(0, 1fr); gap: 16px; align-items: start }
+@media (max-width: 1100px) { .grid { grid-template-columns: 240px minmax(0, 1fr) } .detail { grid-column: 1 / -1 } }
+@media (max-width: 700px) { .grid { grid-template-columns: minmax(0, 1fr) } }
+.col { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-width: 0 }
+.col > header { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; align-items: baseline }
+.col > header small { color: var(--muted) }
+.list { list-style: none; margin: 0; padding: 6px }
+.list button { all: unset; box-sizing: border-box; width: 100%; display: grid; gap: 4px; padding: 8px 10px; border-radius: 4px; cursor: pointer }
+.list button:hover { background: var(--bg) }
+.list button[aria-current="true"] { background: var(--bg); box-shadow: inset 3px 0 0 var(--accent) }
+.list button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
+.pk-name { font-weight: 500 } .pk-meta { font-size: 12px; color: var(--muted); font-family: var(--mono) }
+.bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--line) }
+.bar i { display: block } .bar .g { background: var(--ok) } .bar .o { background: var(--warn) } .bar .r { background: var(--bad) }
+.frow { display: flex !important; align-items: center; gap: 10px; grid-template-columns: none }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; align-self: center }
+.dot.gruen { background: var(--ok) } .dot.orange { background: var(--warn) } .dot.rot { background: var(--bad) }
+.fname { font-family: var(--mono); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0 }
+.fpos { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums }
+.detail { padding: 0 }
+.dhead { padding: 14px; border-bottom: 1px solid var(--line); display: grid; gap: 8px }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; letter-spacing: .02em }
+.pill.gruen { background: var(--ok-bg); color: var(--ok) } .pill.orange { background: var(--warn-bg); color: var(--warn) } .pill.rot { background: var(--bad-bg); color: var(--bad) }
+.reasons { margin: 0; padding-left: 18px }
+.kv { display: grid; grid-template-columns: max-content 1fr 1fr; gap: 2px 16px; font-size: 13px; overflow-x: auto }
+.kv .h { color: var(--muted); font-size: 12px; letter-spacing: .03em; text-transform: uppercase }
+.kv .v { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.tabs { display: flex; gap: 4px; padding: 8px 14px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap }
+.tabs button { all: unset; cursor: pointer; padding: 6px 10px; border-bottom: 2px solid transparent; color: var(--muted) }
+.tabs button[aria-selected="true"] { color: var(--fg); border-color: var(--accent); font-weight: 500 }
+.tabs button:focus-visible { outline: 2px solid var(--accent) }
+.pane { padding: 12px 14px; display: grid; gap: 10px }
+.filter { display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--muted); flex-wrap: wrap }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; max-height: 70vh; overflow-y: auto }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left }
+thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; font-weight: 600; font-size: 12px }
+th.side { text-align: center; color: var(--muted); font-weight: 500 }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+td.mono, .rec { font-family: var(--mono) }
+td.sep { border-left: 2px solid var(--line) }
+tr.hart td { background: var(--bad-bg) } tr.leicht td { background: var(--warn-bg) }
+.chg { background: var(--mark); color: var(--mark-fg); border-radius: 2px; padding: 0 2px }
+.rec { white-space: pre-wrap; word-break: break-word }
+.rec .f { display: inline-block; margin-right: 10px }
+.rec .f small { display: block; font-family: var(--sans); font-size: 10.5px; color: var(--muted); letter-spacing: .03em }
+.st { font-family: var(--mono); color: var(--muted); white-space: nowrap }
+tr.t-d td.l, tr.t-r td.l { background: var(--bad-bg) }
+tr.t-i td.rr, tr.t-r td.rr { background: var(--warn-bg) }
+tr.gap td { background: var(--bg); color: var(--muted); text-align: center; font-size: 12px }
+.empty { color: var(--muted); padding: 24px 14px }
+.note { font-size: 12px; color: var(--muted) }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>GAEB-Abgleich Gewerke-Anfragen</h1>
+      <p class="sub">Vergleich der Anfrage-Dateien (DA 83), die <code>gaeb_gewerke.py</code> aus dem Gesamt-LV erzeugt, mit den echten Anfragen aus den 7 Vergabepaketen. Links das Original, rechts das Script.</p>
+    </div>
+    <div class="tally" id="tally"></div>
+  </div>
+
+  <details class="rules" open>
+    <summary>Was Grün, Orange und Rot heißen</summary>
+    <ul>
+      <li><span class="dot gruen"></span> <b style="color:var(--ok)">Grün = identisch:</b> Jeder Satz ist Zeichen für Zeichen gleich. Ausgenommen ist nur das Erstelldatum im 01er-Satz (Spalte 43–50) und die laufende Zeilennummer, die daraus folgt.</li>
+      <li><span class="dot orange"></span> <b style="color:var(--warn)">Orange = leichte Abweichung:</b> Alle Positionen sind vorhanden und haben denselben Kurztext, dieselbe Menge und Einheit. Abweichend sind nur Dinge drumherum: Kopfsätze, Vorbemerkungen (20), Langtexte, Gliederung (11/31) oder die Ordnungszahl.</li>
+      <li><span class="dot rot"></span> <b style="color:var(--bad)">Rot = harte Abweichung:</b> Eine Position fehlt, ist zu viel oder hat einen anderen Kurztext, eine andere Menge oder Einheit. Das wäre eine falsche Anfrage an den Nachunternehmer.</li>
+      <li>Paket 06-23-0031 ist im Gesamt-LV anders nummeriert (0001, 0002 …) als in den Anfragen (1.1.22 …). Dort ordnet das Script die Positionen über Kurztext, Menge und Einheit zu statt über die Ordnungszahl.</li>
+      <li>Das Script bekommt je Paket die Zuordnung Gewerk → Positionen, die aus den echten Anfragen zurückgelesen wurde. Geprüft wird also, ob das Zerlegen des Gesamt-LV stimmt, nicht ob die Gewerke-Auswahl vorhergesagt werden kann.</li>
+    </ul>
+  </details>
+
+  <div class="grid">
+    <section class="col" aria-label="Vergabepakete">
+      <header><h2>Vergabepakete</h2><small id="pk-count"></small></header>
+      <ul class="list" id="pakete"></ul>
+    </section>
+    <section class="col" aria-label="Dateien">
+      <header><h2 id="files-title">Dateien</h2><small id="files-meta"></small></header>
+      <ul class="list" id="dateien"></ul>
+    </section>
+    <section class="col detail" id="detail" aria-label="Vergleich"></section>
+  </div>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const LABEL = { gruen: 'Grün · identisch', orange: 'Orange · leichte Abweichung', rot: 'Rot · harte Abweichung' };
+const SATZ = { '00':'Kopf','01':'Bezeichnung/Datum','02':'Name','03':'Auftraggeber','06':'Kostenarten','08':'Währung','11':'Gliederung','12':'Titel','20':'Vorbemerkung','21':'Position','25':'Kurztext','26':'Langtext','27':'Zusatzdaten','31':'Gliederungsende','99':'Dateiende' };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const count = (fs, a) => fs.filter(f => f.ampel === a).length;
+let state = { pk: 0, f: null, tab: 'pos', nurAbw: true, alleSaetze: false };
+try { const s = JSON.parse(localStorage.getItem('gaeb-abgleich') || 'null'); if (s && DATA[s.pk]) state = { ...state, ...s }; } catch (e) {}
+const save = () => { try { localStorage.setItem('gaeb-abgleich', JSON.stringify(state)); } catch (e) {} };
+
+function bar(fs) {
+  const n = fs.length || 1;
+  return `<div class="bar" aria-hidden="true">${['g','o','r'].map((k, i) => {
+    const c = count(fs, ['gruen','orange','rot'][i]); return c ? `<i class="${k}" style="width:${c / n * 100}%"></i>` : ''; }).join('')}</div>`;
+}
+
+function renderTally() {
+  const all = DATA.flatMap(p => p.dateien);
+  document.getElementById('tally').innerHTML =
+    `<div class="tile"><b>${all.length}</b><span>Dateien</span></div>` +
+    `<div class="tile g"><b>${count(all,'gruen')}</b><span>grün</span></div>` +
+    `<div class="tile o"><b>${count(all,'orange')}</b><span>orange</span></div>` +
+    `<div class="tile r"><b>${count(all,'rot')}</b><span>rot</span></div>`;
+  document.getElementById('pk-count').textContent = DATA.length + ' Pakete';
+}
+
+function renderPakete() {
+  document.getElementById('pakete').innerHTML = DATA.map((p, i) => `<li><button data-pk="${i}" aria-current="${i === state.pk}">
+    <span class="pk-name">${esc(p.titel)}</span>
+    <span class="pk-meta">${esc(p.id)} · ${p.dateien.length} Dateien · ${count(p.dateien,'gruen')}/${count(p.dateien,'orange')}/${count(p.dateien,'rot')}</span>
+    ${bar(p.dateien)}</button></li>`).join('');
+}
+
+function renderDateien() {
+  const p = DATA[state.pk];
+  document.getElementById('files-title').textContent = p.titel;
+  document.getElementById('files-meta').textContent = 'Gesamt-LV ' + p.lv;
+  const order = { rot: 0, orange: 1, gruen: 2 };
+  const fs = p.dateien.map((f, i) => ({ f, i })).sort((a, b) => order[a.f.ampel] - order[b.f.ampel] || a.f.datei.localeCompare(b.f.datei));
+  document.getElementById('dateien').innerHTML = fs.map(({ f, i }) => `<li><button class="frow" data-f="${i}" aria-current="${i === state.f}" title="${esc(LABEL[f.ampel])}">
+    <span class="dot ${f.ampel}" aria-label="${esc(LABEL[f.ampel])}"></span>
+    <span class="fname">${esc(f.datei)}</span><span class="fpos">${f.n_pos_o} Pos.</span></button></li>`).join('');
+}
+
+function recCell(r, other) {
+  if (!r) return '<span class="note">–</span>';
+  const t = r[0];
+  return `<span class="st">${t}</span> ` + r.slice(1).map((fld, k) => {
+    const diff = other && other[0] === t && other[k + 1] && other[k + 1][1] !== fld[1];
+    const v = fld[1] === '' ? ' ' : fld[1];
+    return `<span class="f"><small>${esc(fld[0])}</small>${diff ? `<span class="chg">${esc(v)}</span>` : esc(v)}</span>`;
+  }).join('');
+}
+
+function posTable(f) {
+  const rows = f.pos.filter(p => !state.nurAbw || p.st !== 'ok');
+  if (!rows.length) return `<p class="empty">Alle ${f.pos.length} Positionen stimmen in Ordnungszahl, Kurztext, Menge, Einheit und Langtext überein.</p>`;
+  const cell = (p, side, k) => {
+    const v = p[side] ? p[side][k] : '';
+    const d = p.o && p.s && p.diff.includes(k);
+    return d ? `<span class="chg">${esc(v)}</span>` : esc(v);
+  };
+  return `<div class="scroll"><table>
+    <thead><tr><th class="side" colspan="4">Original</th><th class="side sep" colspan="4">Script</th></tr>
+    <tr><th>OZ</th><th>Kurztext</th><th>Menge</th><th>Einh.</th><th class="sep">OZ</th><th>Kurztext</th><th>Menge</th><th>Einh.</th></tr></thead>
+    <tbody>${rows.map(p => `<tr class="${p.st === 'ok' ? '' : p.st}" title="${p.diff.includes('lang') ? 'Langtext weicht ab' : ''}">
+      <td class="mono">${p.o ? cell(p,'o','oz') : '<span class="note">fehlt</span>'}</td><td>${cell(p,'o','kurz')}</td><td class="num">${cell(p,'o','menge')}</td><td>${cell(p,'o','einheit')}</td>
+      <td class="mono sep">${p.s ? cell(p,'s','oz') : '<span class="note">fehlt</span>'}</td><td>${cell(p,'s','kurz')}</td><td class="num">${cell(p,'s','menge')}</td><td>${cell(p,'s','einheit')}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+const fmtMenge = v => { v = v.trim(); if (!/^\d+$/.test(v)) return v; return (parseInt(v, 10) / 1000).toLocaleString('de-DE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }); };
+const NAMES = { '02':'Name','03':'Auftraggeber','08':'Währung','12':'Titel','20':'Vorbemerkung','25':'Kurztext','26':'Langtext','31':'Ende OZ','06':'Kostenarten' };
+function fields(raw) {
+  // Satz in benannte Felder zerlegen (feste Spalten nach GAEB 90)
+  const r = raw.padEnd(74), t = r.slice(0, 2), c = (a, b) => r.slice(a, b);
+  let f;
+  if (t === '00') f = [['LV-Nr.', c(13, 29).trim()], ['Kennung', c(62, 74).trim()]];
+  else if (t === '01') f = [['Bezeichnung', c(2, 42).trimEnd()], ['Erstelldatum', c(42, 50)], ['Daten', c(50, 74).trimEnd()]];
+  else if (t === '11') f = [['OZ', c(2, 11)], ['Art', c(11, 74).trim()]];
+  else if (t === '21') f = [['OZ', c(2, 11)], ['Kennz.', c(11, 23).trimEnd()], ['Menge', fmtMenge(c(23, 34))], ['Einheit', c(34, 38).trim()], ['Zusatz', c(38, 74).trim()]];
+  else if (t === '27') f = [['Zusatzdaten', c(2, 74).trim()]];
+  else if (t === '99') f = [['Kennung', c(2, 69).trim()], ['Anz. Positionen', c(69, 74).replace(/^0+/, '') || '0']];
+  else f = [[NAMES[t] || 'Inhalt', c(2, 74).trimEnd()]];
+  return [t, ...f];
+}
+
+function recTable(f) {
+  const ctx = 2, rows = f.rows, n = rows.length;
+  const keep = new Array(n).fill(state.alleSaetze);
+  if (!state.alleSaetze) rows.forEach((r, i) => { if (r[0] !== 'e') for (let k = Math.max(0, i - ctx); k <= Math.min(n - 1, i + ctx); k++) keep[k] = true; });
+  let la = 0, lb = 0, html = '', skipped = 0;
+  const flush = () => { if (skipped) { html += `<tr class="gap"><td colspan="4">… ${skipped} gleiche Sätze ausgeblendet …</td></tr>`; skipped = 0; } };
+  rows.forEach((r, i) => {
+    const a = r[1], b = r.length > 2 ? r[2] : r[1];
+    if (a != null) la++; if (b != null) lb++;
+    if (!keep[i]) { skipped++; return; }
+    flush();
+    const t = r[0] === 'e' && a !== b ? 'r' : r[0];
+    const fa = a != null ? fields(a) : null, fb = b != null ? fields(b) : null;
+    html += `<tr class="t-${t}"><td class="num st">${a != null ? la : ''}</td><td class="rec l">${recCell(fa, t === 'r' ? fb : null)}</td>
+      <td class="num st sep">${b != null ? lb : ''}</td><td class="rec rr">${recCell(fb, t === 'r' ? fa : null)}</td></tr>`;
+  });
+  flush();
+  const gleich = rows.filter(r => r[0] === 'e').length;
+  const box = `<label class="filter"><input type="checkbox" id="alle-saetze" ${state.alleSaetze ? 'checked' : ''}> Alle anzeigen</label>`;
+  const text = state.alleSaetze
+    ? `Alle ${f.saetze_o} Sätze des Originals und ${f.saetze_s} Sätze des Scripts, Zeile für Zeile nebeneinander. ${f.stellen ? `${f.stellen} ${f.stellen === 1 ? 'Stelle weicht' : 'Stellen weichen'} ab.` : 'Alle Sätze sind gleich (Erstelldatum ausgenommen).'}`
+    : f.stellen
+      ? `Gezeigt ${f.stellen === 1 ? 'wird nur die Stelle' : `werden nur die ${f.stellen} Stellen`}, an denen Original und Script sich unterscheiden, mit je 2 gleichen Sätzen davor und danach. Die übrigen gleichen Sätze sind ausgeblendet. Mit „Alle anzeigen“ siehst du die komplette Datei.`
+      : `Keine abweichenden Sätze: Alle ${f.saetze_o} Sätze sind gleich (Erstelldatum ausgenommen). Mit „Alle anzeigen“ siehst du die komplette Datei.`;
+  const legend = ' Rot hinterlegt: nur im Original oder dort anders. Orange hinterlegt: nur im Script oder dort anders. Gelb markiert: das abweichende Feld.';
+  return `${box}<p class="note">${text}${f.stellen || state.alleSaetze ? legend : ''}</p>` +
+    (html ? `<div class="scroll"><table><thead><tr><th>Zeile</th><th>Original</th><th class="sep">Zeile</th><th>Script</th></tr></thead><tbody>${html}</tbody></table></div>` : '');
+}
+
+function renderDetail() {
+  const el = document.getElementById('detail');
+  const p = DATA[state.pk], f = p.dateien[state.f];
+  if (!f) { el.innerHTML = `<p class="empty">Datei links anklicken, um Original und Script Feld für Feld zu vergleichen.</p>`; return; }
+  const reasons = f.ampel === 'gruen' ? ['Identisch bis auf das Erstelldatum'] : f.gruende;
+  const nAbw = f.pos.filter(x => x.st !== 'ok').length;
+  el.innerHTML = `<div class="dhead">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 class="rec">${esc(f.datei)}</h2><span class="pill ${f.ampel}">${LABEL[f.ampel]}</span></div>
+      <div class="note">Gewerk „${esc(f.name)}“ (${esc(f.code)}) aus ${esc(p.lv)}</div>
+      <ul class="reasons">${reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+      <div class="kv"><span class="h"></span><span class="h">Original</span><span class="h">Script</span>
+        <span>Positionen</span><span class="v">${f.n_pos_o}</span><span class="v">${f.n_pos_s}</span>
+        <span>Sätze</span><span class="v">${f.saetze_o}</span><span class="v">${f.saetze_s}</span>
+        <span>Erstelldatum</span><span class="v">${esc(f.datum_o)}</span><span class="v">${esc(f.datum_s)}</span></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="pos" aria-selected="${state.tab === 'pos'}">Positionen${nAbw ? ` (${nAbw} abweichend)` : ''}</button>
+      <button role="tab" data-tab="rec" aria-selected="${state.tab === 'rec'}">Sätze${f.stellen ? ` (${f.stellen} ${f.stellen === 1 ? 'Stelle' : 'Stellen'} abweichend)` : ''}</button>
+    </div>
+    <div class="pane">${state.tab === 'pos'
+      ? `<label class="filter"><input type="checkbox" id="nur-abw" ${state.nurAbw ? 'checked' : ''}> Nur abweichende Positionen zeigen</label>${posTable(f)}`
+      : recTable(f)}</div>`;
+}
+
+function render() { renderTally(); renderPakete(); renderDateien(); renderDetail(); save(); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.pk) { state.pk = +b.dataset.pk; state.f = null; }
+  else if (b.dataset.f) { state.f = +b.dataset.f; { const f = DATA[state.pk].dateien[state.f]; state.tab = (!f.pos.some(x => x.st !== 'ok') && f.stellen) ? 'rec' : 'pos'; } if (window.innerWidth < 1100) setTimeout(() => document.getElementById('detail').scrollIntoView({ behavior: 'smooth' }), 0); }
+  else if (b.dataset.tab) state.tab = b.dataset.tab;
+  else return;
+  render();
+});
+document.addEventListener('change', e => { if (e.target.id === 'nur-abw') { state.nurAbw = e.target.checked; renderDetail(); save(); } if (e.target.id === 'alle-saetze') { state.alleSaetze = e.target.checked; renderDetail(); save(); } });
+
+// Startzustand: erstes Paket mit Abweichungen, erste abweichende Datei
+if (state.f == null) {
+  const pi = DATA.findIndex(p => p.dateien.some(f => f.ampel !== 'gruen'));
+  if (pi >= 0) { state.pk = pi; state.f = DATA[pi].dateien.findIndex(f => f.ampel !== 'gruen'); state.tab = 'rec'; }
+}
+render();
+</script>

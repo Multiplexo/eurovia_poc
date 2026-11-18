@@ -1,0 +1,13 @@
+[
+ {"wort":"markierung","codes":["MARK"]},{"wort":"leitlinie","codes":["MARK"]},{"wort":"sperrfläche","codes":["MARK"]},
+ {"wort":"bitumenemulsion","codes":["ANSPR"]},{"wort":"anspritz","codes":["ANSPR"]},
+ {"wort":"verkehrssicherung","codes":["VS"]},{"wort":"absperr","codes":["VS"]},{"wort":"umleitungsbeschilderung","codes":["VS"]},{"wort":"warnleuchte","codes":["VS"]},{"wort":"Transp. LSA","codes":["VS"]},
+ {"wort":"baubüro","codes":["BÜRO"]},{"wort":"bürocontainer","codes":["BÜRO"]},
+ {"wort":"kampfmittel","codes":["KAMPF"]},{"wort":"schutzplanke","codes":["SCHUTZ"]},{"wort":"gussasphalt","codes":["GUSS"]},
+ {"wort":"griffigkeit","codes":["GRIFF"]},{"wort":"induktionsschleife","codes":["IND"]},
+ {"wort":"teer","codes":["TEER"]},{"wort":"pechhaltig","codes":["TEER"]},
+ {"wort":"geländer","codes":["GEL"]},{"wort":"leitpfosten","codes":["LEIT"]},{"wort":"sigeko","codes":["SIGEKO"]},
+ {"wort":"fugenband","codes":["FUG"]},{"wort":"fugenverguss","codes":["FUG"]},
+ {"wort":"asphalttragschicht","codes":["MG"]},{"wort":"asphaltdeckschicht","codes":["MG"]},{"wort":"asphaltbinder","codes":["MG"]},
+ {"wort":"inliner","codes":["INLINER"]},{"wort":"schlauchliner","codes":["INLINER"]},{"wort":"tv-untersuchung","codes":["KANAL"]},{"wort":"kanalinspektion","codes":["KANAL"]}
+]
